@@ -91,7 +91,7 @@ void Processor::process_nif(const std::filesystem::path& in, const std::filesyst
 				if (auto ref = m_refs.getData(shape->name.get())) {
 
 					//add extra data unless it exists
-					if (!hasSMPPath(nif.GetHeader(), rootNode, ref->smpPath)) {
+					if (!ref->smpPath.empty() && !hasSMPPath(nif.GetHeader(), rootNode, ref->smpPath)) {
 						auto smpData = std::make_unique<nifly::NiStringExtraData>();
 						smpData->name.get() = DATA_NAME;
 						smpData->stringData.get() = ref->smpPath;
