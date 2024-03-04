@@ -89,13 +89,17 @@ void RefFiles::readReferences(const std::filesystem::path& file, const std::file
 	std::ifstream stream(file);
 
 	char buf[256];
-	char* end = buf + sizeof(buf);
 
 	while (stream.getline(buf, sizeof(buf))) {
 
-		if (auto eq = std::find(buf, end, '='); eq < end - 1) {
+		//if we reached EOF, end will point to the null terminator.
+		//else, it will point to one past the null terminator.
+		//Either is fine.
+		auto end = buf + stream.gcount();
 
-			auto path = std::filesystem::path(mbtowstring(eq + 1, end - eq - 1));
+		if (auto eq = std::find(buf, end, '='); eq != end) {
+
+			auto path = std::filesystem::path(mbtowstring(eq + 1, end - eq));
 			if (path.is_relative()) {
 				path = root / path;
 			}
