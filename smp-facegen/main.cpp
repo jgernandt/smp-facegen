@@ -105,7 +105,7 @@ int main()
 		proc.process(std::filesystem::directory_entry(in), in, out);
 		proc.join();
 
-		std::cout << "Created " << proc.processed() << " file(s) in " 
+		std::cout << "Wrote " << proc.processed() << " file(s) in " 
 			<< std::setprecision(2) << m_timer.elapsed() << " seconds\n\n";
 	}
 	catch (const std::exception& e) {

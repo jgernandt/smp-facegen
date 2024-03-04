@@ -116,5 +116,5 @@ void RefFiles::readReferences(const std::filesystem::path& file, const std::file
 		}
 	}
 
-	std::cout << "Mapped " << m_refs.size() << " head parts to " << m_files.size() << " reference files.\n";
+	std::cout << "Mapped " << m_refs.size() << " head parts to " << m_files.size() << " reference files\n";
 }

@@ -22,14 +22,6 @@ static bool hasSMPPath(const nifly::NiHeader& hdr, nifly::NiNode* root, const st
 	return false;
 }
 
-void printThreaded(const std::string& str)
-{
-	static std::mutex mutex;
-	std::lock_guard<decltype(mutex)> lock(mutex);
-
-	std::cout << str << '\n';
-}
-
 Processor::Processor(int threads, const RefFiles& refs) :
 	m_refs{ refs }
 {
@@ -127,7 +119,7 @@ void Processor::process_nif(const std::filesystem::path& in, const std::filesyst
 			std::filesystem::create_directories(out.parent_path());
 			nif.Save(out);
 
-			printThreaded("Created file " + out.string());
+			std::wcout << L"Wrote file " + out.native() + L"\n";
 			++m_count;
 		}
 	}
@@ -168,7 +160,7 @@ void Processor::worker()
 			process_nif(task.in, task.out);
 		}
 		catch (const std::exception& e) {
-			printThreaded(e.what());
+			std::cout << e.what();
 		}
 	}
 }
