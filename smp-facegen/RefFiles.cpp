@@ -105,10 +105,12 @@ void RefFiles::readReferences(const std::filesystem::path& file, const std::file
 			std::transform(extension.begin(), extension.end(), extension.begin(),
 				[](unsigned char c) -> char { return std::tolower(c); });
 			if (extension == ".nif" && std::filesystem::directory_entry(path).exists()) {
-				m_refs.insert({ std::string(buf, eq), std::make_unique<RefFile>(path) });
+
+				auto res = m_files.insert({ path, std::make_unique<RefFile>(path) });
+				m_refs.insert({ std::string(buf, eq), res.first->second.get()});
 			}
 		}
 	}
 
-	std::cout << "Found " << m_refs.size() << " reference file(s)\n";
+	std::cout << "Mapped " << m_refs.size() << " head parts to " << m_files.size() << " reference files.\n";
 }

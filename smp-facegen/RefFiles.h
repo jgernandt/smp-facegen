@@ -45,5 +45,6 @@ public:
 
 private:
 	std::set<std::string> m_exclude;
-	std::map<std::string, std::unique_ptr<RefFile>> m_refs;
+	std::map<std::string, RefFile*> m_refs;
+	std::map<std::filesystem::path, std::unique_ptr<RefFile>> m_files;
 };
