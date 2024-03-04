@@ -8,7 +8,7 @@
 #include "Timer.h"
 
 constexpr const char* PROJECT_NAME = "SMP FaceGen";
-constexpr const char* VERSION_STR = "1.1.1";
+constexpr const char* VERSION_STR = "1.1.2";
 
 int main()
 {
