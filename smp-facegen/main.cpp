@@ -12,95 +12,77 @@
 constexpr const char* PROJECT_NAME = "SMP FaceGen";
 constexpr const char* VERSION_STR = "1.1.2";
 
+constexpr const char* EXCLUDE_NAME = "exclude.txt";
+constexpr const char* PATHS_NAME = "paths.txt";
+constexpr const char* REFS_NAME = "head parts.txt";
+
 int main()
 {
-	std::setlocale(LC_ALL, "en_US.utf8");
-
-	std::cout << PROJECT_NAME << " version " << VERSION_STR << "\n\n";
-
-	std::filesystem::path root(std::filesystem::current_path());
-	std::filesystem::path in(root / "in");
-	std::filesystem::path out(root / "out");
-	std::filesystem::path ref(root / "ref");
-
-	std::ifstream input("locations.txt");
-	char buf[256];
-
-	while (input.getline(buf, sizeof(buf))) {
-
-		auto str = mbtowstring(buf, sizeof(buf));
-
-		if (str.starts_with(L"in=")) {
-			auto t1 = str.substr(4);
-			auto t2 = std::filesystem::path(str.substr(4));
-			in = std::filesystem::absolute(std::filesystem::path(str.substr(3)));
-		}
-		else if (str.starts_with(L"out=")) {
-			out = std::filesystem::absolute(std::filesystem::path(str.substr(4)));
-		}
-		else if (str.starts_with(L"ref=")) {
-			ref = std::filesystem::absolute(std::filesystem::path(str.substr(4)));
-		}
-	}
-
-	if (std::filesystem::directory_entry(in).exists()) {
-		std::wcout << std::left << std::setw(12) << "Input:" << in.native() << '\n';
-	}
-	else {
-		std::wcout << "Input directory " << in.native() << " does not exist.\n";
-		return 0;
-	}
-
-	if (std::filesystem::directory_entry(out).exists()) {
-		std::wcout << std::left << std::setw(12) << "Output:" << out.native() << '\n';
-	}
-	else {
-		std::wcout << "Output directory " << out.native() << " does not exist. Create it? Y/N\n";
-		char reply;
-		while (true) {
-			(std::cin >> reply).ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			if (std::tolower(static_cast<unsigned char>(reply)) == 'n') {
-				return 0;
-			}
-			else if (std::tolower(static_cast<unsigned char>(reply)) == 'y') {
-				std::filesystem::create_directories(out);
-				break;
-			}
-		}
-	}
-
-	if (in == out) {
-		std::wcout << "Overwrite files in input directory? Y/N";
-		char reply;
-		while (true) {
-			(std::cin >> reply).ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-			if (std::tolower(static_cast<unsigned char>(reply)) == 'n') {
-				return 0;
-			}
-			else if (std::tolower(static_cast<unsigned char>(reply)) == 'y') {
-				break;
-			}
-		}
-	}
-
-	if (std::filesystem::directory_entry(ref).exists()) {
-		std::wcout << std::left << std::setw(12) << "References:" << ref.native() << '\n';
-	}
-	else {
-		std::wcout << "Reference directory " << ref.native() << " does not exist.\n";
-		return 0;
-	}
-
-	std::wcout << std::endl;
-
 	try {
+		std::setlocale(LC_ALL, "en_US.utf8");
+
+		std::cout << PROJECT_NAME << " version " << VERSION_STR << "\n\n";
+
+		std::filesystem::path root(std::filesystem::current_path());
+		std::filesystem::path in;
+		std::filesystem::path out;
+		std::filesystem::path ref;
+
+		std::ifstream input(PATHS_NAME);
+		char buf[256];
+
+		while (input.getline(buf, sizeof(buf))) {
+
+			auto end = buf + input.gcount();
+
+			auto str = mbtowstring(buf, end - buf);
+
+			if (str.starts_with(L"in=")) {
+				in = std::filesystem::absolute(std::filesystem::path(str.substr(3)));
+			}
+			else if (str.starts_with(L"out=")) {
+				out = std::filesystem::absolute(std::filesystem::path(str.substr(4)));
+			}
+			else if (str.starts_with(L"data=")) {
+				ref = std::filesystem::absolute(std::filesystem::path(str.substr(5)));
+			}
+		}
+
+		if (in.empty()) {
+			in = root;
+		}
+		if (out.empty()) {
+			out = root;
+		}
+		if (ref.empty()) {
+			ref = root;
+		}
+
+		std::wcout << std::left << std::setw(8) << "Input:" << in.native() << '\n';
+		std::wcout << std::left << std::setw(8) << "Output:" << out.native() << '\n';
+		std::wcout << std::left << std::setw(8) << "Data:" << ref.native() << '\n';
+
+		std::wcout << std::endl;
+
+		if (!std::filesystem::directory_entry(in).exists()) {
+			throw std::runtime_error("Input directory does not exist.");
+		}
+
+		if (in == out) {
+			throw std::runtime_error("Input and output directories cannot be the same.");
+		}
+
+		if (!std::filesystem::directory_entry(ref).exists()) {
+			throw std::runtime_error("Data directory does not exist.");
+		}
+
 		Timer<double> m_timer;
 
 		RefFiles refs;
 		Processor proc(std::max((int)std::thread::hardware_concurrency(), 1), refs);
 
-		refs.readExclusions("exclude.txt");
-		refs.readReferences("references.txt", ref);
+		refs.readExclusions(EXCLUDE_NAME);
+		refs.readReferences(REFS_NAME, ref);
 
 		proc.process(std::filesystem::directory_entry(in), in, out);
 		proc.join();
