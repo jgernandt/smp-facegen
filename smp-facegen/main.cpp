@@ -10,7 +10,7 @@
 #include "Timer.h"
 
 constexpr const char* PROJECT_NAME = "SMP FaceGen";
-constexpr const char* VERSION_STR = "1.1.2";
+constexpr const char* VERSION_STR = "1.2.0";
 
 constexpr const char* EXCLUDE_NAME = "exclude.txt";
 constexpr const char* PATHS_NAME = "paths.txt";
