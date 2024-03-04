@@ -55,7 +55,12 @@ RefData* RefFiles::getData(const std::string& name) const
 void RefFiles::readDirectory(const std::filesystem::path& dir)
 {
 	for (auto&& entry : std::filesystem::directory_iterator(dir)) {
-		m_refs.insert({ entry.path().stem().string(), std::make_unique<RefFile>(entry) });
+		std::string extension = entry.path().extension().string();
+		std::transform(extension.begin(), extension.end(), extension.begin(),
+			[](unsigned char c) -> char { return std::tolower(c); });
+		if (extension == ".nif") {
+			m_refs.insert({ entry.path().stem().string(), std::make_unique<RefFile>(entry) });
+		}
 	}
 }
 
