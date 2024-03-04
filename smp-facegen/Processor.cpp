@@ -135,8 +135,10 @@ void Processor::process_nif(const std::filesystem::path& in, const std::filesyst
 
 void Processor::push(const std::filesystem::path& in, const std::filesystem::path& out)
 {
-	std::lock_guard<decltype(m_mutex)> lock(m_mutex);
-	m_tasks.push({ in, out });
+	{
+		std::lock_guard<decltype(m_mutex)> lock(m_mutex);
+		m_tasks.push({ in, out });
+	}
 	m_signal.release(1);
 }
 
