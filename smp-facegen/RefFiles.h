@@ -10,6 +10,8 @@
 
 constexpr const char* DATA_NAME = "HDT Skinned Mesh Physics Object";
 
+std::wstring mbtowstring(const char* mb, std::size_t size);
+
 struct BoneData
 {
 	std::string parent;
@@ -38,8 +40,8 @@ public:
 
 	RefData* getData(const std::string& name) const;
 
-	void readDirectory(const std::filesystem::path& dir);
 	void readExclusions(const std::filesystem::path& path);
+	void readReferences(const std::filesystem::path& file, const std::filesystem::path& root);
 
 private:
 	std::set<std::string> m_exclude;

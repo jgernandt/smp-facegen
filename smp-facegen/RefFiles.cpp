@@ -1,8 +1,29 @@
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <string>
 
 #include "RefFiles.h"
+
+std::wstring mbtowstring(const char* mb, std::size_t size)
+{
+	std::wstring result;
+
+	while (true) {
+		wchar_t wc;
+		int bytes = std::mbtowc(&wc, mb, size);
+		if (bytes > 0) {
+			result.push_back(wc);
+			mb += bytes;
+			size -= bytes;
+		}
+		else {
+			break;
+		}
+	}
+
+	return result;
+}
 
 RefData* RefFiles::getData(const std::string& name) const
 {
@@ -52,18 +73,6 @@ RefData* RefFiles::getData(const std::string& name) const
     return nullptr;
 }
 
-void RefFiles::readDirectory(const std::filesystem::path& dir)
-{
-	for (auto&& entry : std::filesystem::directory_iterator(dir)) {
-		std::string extension = entry.path().extension().string();
-		std::transform(extension.begin(), extension.end(), extension.begin(),
-			[](unsigned char c) -> char { return std::tolower(c); });
-		if (extension == ".nif") {
-			m_refs.insert({ entry.path().stem().string(), std::make_unique<RefFile>(entry) });
-		}
-	}
-}
-
 void RefFiles::readExclusions(const std::filesystem::path& path)
 {
 	std::ifstream file(path);
@@ -73,4 +82,33 @@ void RefFiles::readExclusions(const std::filesystem::path& path)
 	while (file.getline(buf, sizeof(buf))) {
 		m_exclude.insert(buf);
 	}
+}
+
+void RefFiles::readReferences(const std::filesystem::path& file, const std::filesystem::path& root)
+{
+	std::ifstream stream(file);
+
+	char buf[256];
+	char* end = buf + sizeof(buf);
+
+	while (stream.getline(buf, sizeof(buf))) {
+
+		if (auto eq = std::find(buf, end, '='); eq < end - 1) {
+
+			auto path = std::filesystem::path(mbtowstring(eq + 1, end - eq - 1));
+			if (path.is_relative()) {
+				path = root / path;
+			}
+
+			//Add this reference if it exists and has a .nif extension
+			std::string extension = path.extension().string();
+			std::transform(extension.begin(), extension.end(), extension.begin(),
+				[](unsigned char c) -> char { return std::tolower(c); });
+			if (extension == ".nif" && std::filesystem::directory_entry(path).exists()) {
+				m_refs.insert({ std::string(buf, eq), std::make_unique<RefFile>(path) });
+			}
+		}
+	}
+
+	std::cout << "Found " << m_refs.size() << " reference file(s)\n";
 }

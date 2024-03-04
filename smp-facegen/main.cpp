@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -13,26 +12,6 @@
 constexpr const char* PROJECT_NAME = "SMP FaceGen";
 constexpr const char* VERSION_STR = "1.1.2";
 
-std::wstring mbtowstring(const char* mb, std::size_t size)
-{
-	std::wstring result;
-
-	while (true) {
-		wchar_t wc;
-		int bytes = std::mbtowc(&wc, mb, size);
-		if (bytes > 0) {
-			result.push_back(wc);
-			mb += bytes;
-			size -= bytes;
-		}
-		else {
-			break;
-		}
-	}
-
-	return result;
-}
-
 int main()
 {
 	std::setlocale(LC_ALL, "en_US.utf8");
@@ -46,7 +25,6 @@ int main()
 
 	std::ifstream input("locations.txt");
 	char buf[256];
-	char* end = buf + sizeof(buf);
 
 	while (input.getline(buf, sizeof(buf))) {
 
@@ -122,7 +100,7 @@ int main()
 		Processor proc(std::max((int)std::thread::hardware_concurrency(), 1), refs);
 
 		refs.readExclusions("exclude.txt");
-		refs.readDirectory(ref);
+		refs.readReferences("references.txt", ref);
 
 		proc.process(std::filesystem::directory_entry(in), in, out);
 		proc.join();
