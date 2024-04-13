@@ -69,6 +69,13 @@ void Processor::process(const std::filesystem::directory_entry& entry,
 	}
 }
 
+void Processor::report() const
+{
+	std::cout << "Processed " << m_written + m_skipped << " file(s) in "
+		<< std::setprecision(2) << m_timer.elapsed() << " seconds (" 
+		<< m_written << " written, " << m_skipped << " skipped)\n\n";
+}
+
 void Processor::process_nif(const std::filesystem::path& in, const std::filesystem::path& out)
 {
 	nifly::NifFile nif(in);
@@ -120,7 +127,11 @@ void Processor::process_nif(const std::filesystem::path& in, const std::filesyst
 			nif.Save(out);
 
 			std::wcout << L"Wrote file " + out.native() + L"\n";
-			++m_count;
+			++m_written;
+		}
+		else {
+			std::wcout << L"Skipped file " + in.native() + L"\n";
+			++m_skipped;
 		}
 	}
 }

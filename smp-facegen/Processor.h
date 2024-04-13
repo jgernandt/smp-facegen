@@ -7,6 +7,7 @@
 #include <thread>
 
 #include "RefFiles.h"
+#include "Timer.h"
 
 class Processor
 {
@@ -26,7 +27,7 @@ public:
 	void join();
 	void process(const std::filesystem::directory_entry& entry,
 		const std::filesystem::path& iroot, const std::filesystem::path& oroot);
-	int processed() const { return m_count.load(); }
+	void report() const;
 
 private:
 	void process_nif(const std::filesystem::path& in, const std::filesystem::path& out);
@@ -41,5 +42,8 @@ private:
 	std::mutex m_mutex;
 	std::counting_semaphore<> m_signal{ 0 };
 
-	std::atomic_int m_count{ 0 };
+	std::atomic_int m_written{ 0 };
+	std::atomic_int m_skipped{ 0 };
+
+	Timer<double> m_timer;
 };
